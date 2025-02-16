@@ -105,7 +105,7 @@ FROM athletes
 GROUP BY sport
 ORDER BY num_competitions DESC;
 ```
-![The most popular sport](docs\top_5_num_competitions.png)
+![The most popular sport](docs/top_5_num_competitions.png)
 *Bar Chart is limited by 5 due to visualization limitation issues*
 
 ### Age distribution of athletes
@@ -117,7 +117,7 @@ FROM athletes
 GROUP BY age
 ORDER BY age ASC
 ```
-![distribution_athletes_by_age](docs\distribution_by_age.png)
+![distribution_athletes_by_age](docs/distribution_by_age.png)
 
 ### Weight and Height Distribution of each sport
 ```sql
@@ -343,5 +343,5 @@ ORDER BY num_medals DESC
 | 1928     | Winter     | 89             |
 
 ## 4. ERD
-![ERD](docs\ERD.png)
+![ERD](docs/ERD.png)
 # Project Proposal
