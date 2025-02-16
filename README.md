@@ -343,5 +343,5 @@ ORDER BY num_medals DESC
 | 1928     | Winter     | 89             |
 
 ## 4. ERD
-
+![ERD](docs\ERD.png)
 # Project Proposal
