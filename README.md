@@ -1,7 +1,6 @@
 # Proposal Preparation
 ## 1. Dataset Descripition
-Welcome to my **SQL Portfolio Project**, where I analyze **Olympic Games results from 1896 to 2016**. This project serves as a deep dive into historical trends and insights from the Games, with the goal of **providing valuable data-driven strategies for countries to better plan for future Olympic events**. Through this exploration, I aim to **uncover patterns and trends** that could help inform decision-making and strategic planning for nations looking to improve their performance in upcoming competitions.
-
+I decided to pick **Olympic Games results from 1896 to 2016** as my dataset since I have a profound interest in sports and would like to explore one of the biggest sporting events across the world.
 
 ## 2. Importing and Cleaning the Data
 ### Creating Tables
@@ -96,7 +95,7 @@ ORDER BY num_medals DESC;
 ![The top medal-winning country](docs/top_5_regions_medals.png)
 *Bar Chart is limited by 5 due to visualization limitation issues*
 
-### Number of competitions in each sport
+### Number of competitions in each sport throughout the whole olympic events
 ```sql
 SELECT
 	sport,
@@ -107,6 +106,73 @@ ORDER BY num_competitions DESC;
 ```
 ![The most popular sport](docs/top_5_num_competitions.png)
 *Bar Chart is limited by 5 due to visualization limitation issues*
+
+### Most competition by sport across olympic years
+```sql
+WITH rank_num_competitions_year AS (
+SELECT
+	"year",
+	sport,
+	COUNT(DISTINCT event) AS num_competitions,
+	RANK () OVER(PARTITION BY "year" ORDER BY COUNT(DISTINCT event) DESC) AS rank_sport
+FROM athletes
+--WHERE "year" BETWEEN 2000 AND 2016
+GROUP BY 
+	sport,
+	"year"
+ORDER BY "year", num_competitions DESC
+)
+SELECT 
+	"year",
+	sport,
+	num_competitions
+FROM rank_num_competitions_year
+WHERE rank_sport = 1 ;
+```
+| Year | Sport               | Num Competitions |
+|------|---------------------|------------------|
+| 1896 | Athletics           | 12               |
+| 1900 | Athletics           | 23               |
+| 1904 | Athletics           | 24               |
+| 1906 | Athletics           | 21               |
+| 1908 | Athletics           | 26               |
+| 1912 | Athletics           | 30               |
+| 1920 | Athletics           | 29               |
+| 1924 | Athletics           | 27               |
+| 1928 | Athletics           | 27               |
+| 1932 | Athletics           | 29               |
+| 1936 | Athletics           | 29               |
+| 1948 | Athletics           | 33               |
+| 1952 | Athletics           | 33               |
+| 1956 | Athletics           | 33               |
+| 1960 | Athletics           | 34               |
+| 1964 | Athletics           | 36               |
+| 1968 | Athletics           | 36               |
+| 1972 | Athletics           | 38               |
+| 1976 | Athletics           | 37               |
+| 1980 | Athletics           | 38               |
+| 1984 | Athletics           | 41               |
+| 1988 | Athletics           | 42               |
+| 1992 | Athletics           | 43               |
+| 1994 | Cross Country Skiing| 10               |
+| 1994 | Alpine Skiing       | 10               |
+| 1994 | Speed Skating       | 10               |
+| 1996 | Athletics           | 44               |
+| 1998 | Alpine Skiing       | 10               |
+| 1998 | Cross Country Skiing| 10               |
+| 1998 | Speed Skating       | 10               |
+| 2000 | Athletics           | 46               |
+| 2002 | Cross Country Skiing| 12               |
+| 2004 | Athletics           | 46               |
+| 2006 | Speed Skating       | 12               |
+| 2006 | Cross Country Skiing| 12               |
+| 2008 | Athletics           | 47               |
+| 2010 | Speed Skating       | 12               |
+| 2010 | Cross Country Skiing| 12               |
+| 2012 | Athletics           | 47               |
+| 2014 | Cross Country Skiing| 12               |
+| 2014 | Speed Skating       | 12               |
+| 2016 | Athletics           | 47               |
 
 ### Age distribution of athletes
 ```sql
@@ -279,69 +345,77 @@ ORDER BY
 ```sql
 SELECT
 	"year",
-	season,
-	COUNT(*) AS num_medals
-FROM athletes
-WHERE medal IS NOT NULL
-GROUP BY 
-	"year",
-	season
-ORDER BY num_medals DESC
+	SUM(CASE WHEN season = 'Summer' THEN 1 ELSE 0 END) AS num_summer_games,
+	SUM(CASE WHEN season = 'Winter' THEN 1 ELSE 0 END) AS num_winter_games
+FROM athletes a 
+GROUP BY "year"
+ORDER BY "year";
 ```
-| **Year** | **Season** | **Num Medals** |
-|----------|------------|----------------|
-| 2008     | Summer     | 2048           |
-| 2016     | Summer     | 2023           |
-| 2000     | Summer     | 2004           |
-| 2004     | Summer     | 2001           |
-| 2012     | Summer     | 1941           |
-| 1996     | Summer     | 1842           |
-| 1992     | Summer     | 1712           |
-| 1988     | Summer     | 1582           |
-| 1984     | Summer     | 1476           |
-| 1980     | Summer     | 1384           |
-| 1976     | Summer     | 1320           |
-| 1920     | Summer     | 1308           |
-| 1972     | Summer     | 1215           |
-| 1968     | Summer     | 1057           |
-| 1964     | Summer     | 1029           |
-| 1912     | Summer     | 941            |
-| 1936     | Summer     | 917            |
-| 1960     | Summer     | 911            |
-| 1952     | Summer     | 897            |
-| 1956     | Summer     | 893            |
-| 1948     | Summer     | 852            |
-| 1924     | Summer     | 832            |
-| 1908     | Summer     | 831            |
-| 1928     | Summer     | 734            |
-| 1932     | Summer     | 647            |
-| 1900     | Summer     | 604            |
-| 2014     | Winter     | 597            |
-| 2006     | Winter     | 526            |
-| 2010     | Winter     | 520            |
-| 1904     | Summer     | 486            |
-| 2002     | Winter     | 478            |
-| 1906     | Summer     | 458            |
-| 1998     | Winter     | 440            |
-| 1994     | Winter     | 331            |
-| 1992     | Winter     | 318            |
-| 1988     | Winter     | 263            |
-| 1984     | Winter     | 222            |
-| 1980     | Winter     | 218            |
-| 1976     | Winter     | 211            |
-| 1972     | Winter     | 199            |
-| 1968     | Winter     | 199            |
-| 1964     | Winter     | 186            |
-| 1956     | Winter     | 150            |
-| 1960     | Winter     | 147            |
-| 1896     | Summer     | 143            |
-| 1952     | Winter     | 136            |
-| 1948     | Winter     | 135            |
-| 1924     | Winter     | 130            |
-| 1936     | Winter     | 108            |
-| 1932     | Winter     | 92             |
-| 1928     | Winter     | 89             |
+| Year | Num Summer Games | Num Winter Games |
+|------|------------------|------------------|
+| 1896 | 380              | 0                |
+| 1900 | 1936             | 0                |
+| 1904 | 1301             | 0                |
+| 1906 | 1733             | 0                |
+| 1908 | 3101             | 0                |
+| 1912 | 4040             | 0                |
+| 1920 | 4292             | 0                |
+| 1924 | 5233             | 460              |
+| 1928 | 4992             | 582              |
+| 1932 | 2969             | 352              |
+| 1936 | 6506             | 895              |
+| 1948 | 6405             | 1075             |
+| 1952 | 8270             | 1088             |
+| 1956 | 5127             | 1307             |
+| 1960 | 8119             | 1116             |
+| 1964 | 7702             | 1778             |
+| 1968 | 8588             | 1891             |
+| 1972 | 10304            | 1655             |
+| 1976 | 8641             | 1861             |
+| 1980 | 7191             | 1746             |
+| 1984 | 9454             | 2134             |
+| 1988 | 12037            | 2639             |
+| 1992 | 12977            | 3436             |
+| 1994 | 0                | 3160             |
+| 1996 | 13780            | 0                |
+| 1998 | 0                | 3605             |
+| 2000 | 13821            | 0                |
+| 2002 | 0                | 4109             |
+| 2004 | 13443            | 0                |
+| 2006 | 0                | 4382             |
+| 2008 | 13602            | 0                |
+| 2010 | 0                | 4402             |
+| 2012 | 12920            | 0                |
+| 2014 | 0                | 4891             |
+| 2016 | 13688            | 0                |
+
 
 ## 4. ERD
 ![ERD](docs/ERD.png)
 # Project Proposal
+## 1. Description
+Welcome to my **SQL Portfolio Project**, where I analyze **Olympic Games results from 1896 to 2016**. This project serves as a deep dive into historical trends and insights from the Games, with the goal of **providing valuable data-driven strategies for countries to better plan for future Olympic events**. Through this exploration, I aim to **uncover patterns and trends** that could help inform decision-making and strategic planning for nations looking to improve their performance in upcoming competitions.
+## 2. Questions
+- What is the correlation between sports with a high number of competitions and a country's success in winning Olympic medals?
+
+	*The goal is to identify sports with many competitions and explore their impact on a country’s medal achievements in the Olympics.*
+
+- How does age influence an athlete's chances of winning medals?
+
+	*The aim is to determine if there is a specific age range where athletes are more likely to win medals.*
+
+- How does Body Mass Index (BMI) — calculated from weight and height — influence an athlete’s chances of winning medals?
+
+	*The focus is on discovering if certain physical attributes, measured through BMI, correlate with higher chances of winning medals.*
+
+### 3. Hypothesis
+- Sports that provide **the most competitions** will have a positive impact on overall medal achievements in the Olympics.
+- Athletes between **the ages of 25 and 30** tend to win more medals compared to other age groups.
+- Athletes with a **BMI in the normal weight range (18.5 - 24.9)** tend to win more medals compared to those in other BMI categories.
+
+### 4. Approach
+- The analysis will focus on Olympic data **from 2000 onwards**, as it is more relevant for future planning.
+- The study will be centered on the **Summer Olympics**, as it hosts a greater number of events compared to the Winter Olympics.
+- **Athletics** will be the primary sport analyzed, as it consistently has the most competitions across Olympic events.
+- **Age** will be grouped into categories for easier analysis.
+- **BMI** will be used to measure physical attributes (height and weight).
