@@ -408,7 +408,7 @@ Welcome to my **SQL Portfolio Project**, where I analyze **Olympic Games results
 
 	*The focus is on discovering if certain physical attributes, measured through BMI, correlate with higher chances of winning medals.*
 
-### 3. Hypothesis
+### 3. Hypotheses
 - Sports that provide **the most competitions** will have a positive impact on overall medal achievements in the Olympics.
 - Athletes between **the ages of 25 and 30** tend to win more medals compared to other age groups.
 - Athletes with a **BMI in the normal weight range (18.5 - 24.9)** tend to win more medals compared to those in other BMI categories.
