@@ -449,11 +449,11 @@ ORDER BY
 | 2016 | 192         | 174                |
 
 **Summary:**
-This statistic is used to understand the data in general specifically because there are multiple *id* within the data
+- This statistic is used to understand the data in general specifically because there are multiple *id* within the data
 
 **Key Points:**
-The number of total participants is lesser than the total medals meaning that one participant can possibly participate and win medals in multiple sport events in athletics
-
+- The number of total participants is lesser than the total medals meaning that one participant can possibly participate and win medals in multiple sport events in athletics
+- The total medals and winners in athletics over 2000 to 2016 slightly change every year.
 ### 2. Top 10 medals by country in athletics vs overall
 #### Top 10 medals in athletics by country
 ```sql
