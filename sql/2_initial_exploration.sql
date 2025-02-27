@@ -23,13 +23,36 @@ GROUP BY n.region
 ORDER BY num_medals DESC;
 
 --Number of competitions in each sport
+WITH num_sport AS (
+	SELECT
+		sport,
+		COUNT(DISTINCT event) AS num_competitions
+	FROM athletes
+	WHERE "year" BETWEEN 2000 AND 2016
+	GROUP BY sport
+	ORDER BY num_competitions DESC
+),
+total_competitions AS (
+	SELECT SUM (num_competitions) AS total
+	FROM num_sport
+),
+cumulative_sum AS (
 SELECT
-	sport,
-	COUNT(DISTINCT event) AS num_competitions
-FROM athletes	
-GROUP BY sport
+	n.sport,
+	n.num_competitions,
+	SUM(num_competitions) OVER (ORDER BY num_competitions DESC) AS cumulative_sum,
+	t.total
+FROM 
+	num_sport AS n,
+	total_competitions AS t
 ORDER BY num_competitions DESC
-LIMIT 5;
+)
+SELECT 
+	sport,
+	num_competitions,
+	cumulative_sum,
+	(cumulative_sum/total*100) AS cumulative_percentage
+FROM cumulative_sum;
 
 --Age distribution of athletes
 SELECT
@@ -69,16 +92,43 @@ ORDER BY
 --year and season medal distributions
 SELECT
 	"year",
-	season,
-	COUNT(*) AS num_medals
-FROM athletes
-WHERE medal IS NOT NULL
-GROUP BY 
+	SUM(CASE WHEN season = 'Summer' THEN 1 ELSE 0 END) AS num_summer_games,
+	SUM(CASE WHEN season = 'Winter' THEN 1 ELSE 0 END) AS num_winter_games
+FROM athletes a 
+GROUP BY "year"
+ORDER BY "year";
+
+-- the most competitions by sport in every year olympic
+WITH rank_num_competitions_year AS (
+SELECT
 	"year",
-	season
-ORDER BY num_medals DESC
+	sport,
+	COUNT(DISTINCT event) AS num_competitions,
+	RANK () OVER(PARTITION BY "year" ORDER BY COUNT(DISTINCT event) DESC) AS rank_sport
+FROM athletes
+--WHERE "year" BETWEEN 2000 AND 2016
+GROUP BY 
+	sport,
+	"year"
+ORDER BY "year", num_competitions DESC
+)
+SELECT 
+	"year",
+	sport,
+	num_competitions
+FROM rank_num_competitions_year
+WHERE rank_sport = 1 ;
 
 SELECT
-	MIN (year),
-	MAX (year)
+	"year",
+	SUM(CASE WHEN season = 'Summer' THEN 1 ELSE 0 END) AS num_summer_games,
+	SUM(CASE WHEN season = 'Winter' THEN 1 ELSE 0 END) AS num_winter_games
 FROM athletes a 
+GROUP BY "year"
+ORDER BY "year";
+
+SELECT*
+FROM athletes a 
+LIMIT 10
+
+

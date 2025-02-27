@@ -410,7 +410,7 @@ Welcome to my **SQL Portfolio Project**, where I analyze **Olympic Games results
 
 ### 3. Hypotheses
 - Sports that provide **the most competitions** will have a positive impact on overall medal achievements in the Olympics.
-- Athletes between **the ages of 25 and 30** tend to win more medals compared to other age groups.
+- Athletes between **the ages of 26 and 30** tend to win more medals compared to other age groups.
 - Athletes with a **BMI in the normal weight range (18.5 - 24.9)** tend to win more medals compared to those in other BMI categories.
 
 ### 4. Approach
@@ -419,3 +419,431 @@ Welcome to my **SQL Portfolio Project**, where I analyze **Olympic Games results
 - **Athletics** will be the primary sport analyzed, as it consistently has the most competitions across Olympic events.
 - **Age** will be grouped into categories for easier analysis.
 - **BMI** will be used to measure physical attributes (height and weight).
+
+## 5. Descriptive Statistic
+
+### 1. Total medals and participants
+```sql
+SELECT
+	"year",
+	COUNT (*) AS total_medals,
+	COUNT (DISTINCT id) AS total_participants
+FROM athletes
+WHERE 
+	medal IS NOT NULL AND
+	("year" BETWEEN 2000 AND 2016) AND
+	sport = 'Athletics' AND
+	season = 'Summer'
+GROUP BY 
+	"year"
+ORDER BY
+	"year"
+; 
+```
+| Year | Total Medals | Total Participants |
+|------|-------------|--------------------|
+| 2000 | 190         | 177                |
+| 2004 | 180         | 166                |
+| 2008 | 187         | 170                |
+| 2012 | 190         | 171                |
+| 2016 | 192         | 174                |
+
+**Summary:**
+This statistic is used to understand the data in general specifically because there are multiple *id* within the data
+
+**Key Points:**
+The number of total participants is lesser than the total medals meaning that one participant can possibly participate and win medals in multiple sport events in athletics
+
+### 2. Top 10 medals by country in athletics vs overall
+#### Top 10 medals in athletics by country
+```sql
+CREATE VIEW medals_athletics_by_country AS
+SELECT
+	a."year",
+	n.region,
+	COUNT(*) AS num_medals
+FROM athletes a
+LEFT JOIN noc_regions n
+	ON a.noc = n.noc
+WHERE 
+	a.medal IS NOT NULL AND
+	(a."year" BETWEEN 2000 AND 2016) AND
+	a.sport = 'Athletics' AND
+	a.season = 'Summer'
+GROUP BY
+	a."year",
+	n.region
+ORDER BY
+	a."year",
+	num_medals DESC
+;
+
+SELECT
+	m.region,
+	SUM(m.num_medals) AS total_medals,
+	ROUND(AVG(m.num_medals)) AS avg_medals,
+	PERCENTILE_DISC(0.5) WITHIN GROUP(ORDER BY num_medals) AS median_medals,
+	MIN(m.num_medals ) AS min_medals,
+	MAX(m.num_medals ) AS max_medals
+FROM medals_athletics_by_country AS m
+GROUP BY m.region
+ORDER BY total_medals DESC
+LIMIT 10
+```
+#### Top 10 medals overall by country
+
+```sql
+CREATE VIEW medals_overall_by_country AS
+SELECT
+	a."year",
+	n.region,
+	COUNT(*) AS num_medals
+FROM athletes a
+LEFT JOIN noc_regions n
+	ON a.noc = n.noc
+WHERE 
+	a.medal IS NOT NULL AND
+	(a."year" BETWEEN 2000 AND 2016) AND
+	a.season = 'Summer'
+GROUP BY
+	a."year",
+	n.region
+ORDER BY
+	a."year",
+	num_medals DESC
+;
+SELECT
+	m.region,
+	SUM(m.num_medals) AS total_medals,
+	ROUND(AVG(m.num_medals)) AS avg_medals,
+	PERCENTILE_DISC(0.5) WITHIN GROUP(ORDER BY num_medals) AS median_medals,
+	MIN(m.num_medals ) AS min_medals,
+	MAX(m.num_medals ) AS max_medals
+FROM medals_overall_by_country AS m
+GROUP BY m.region
+ORDER BY total_medals DESC
+LIMIT 10
+;
+```
+#### Visualization Top 10 medals athletics by country
+| Region   | Total Medals | Avg Medals | Median Medals | Min Medals | Max Medals |
+|----------|-------------|------------|---------------|------------|------------|
+| USA      | 186         | 37         | 38            | 28         | 46         |
+| Jamaica  | 105         | 21         | 23            | 13         | 30         |
+| Russia   | 93          | 23         | 23            | 18         | 27         |
+| Kenya    | 53          | 11         | 11            | 7          | 15         |
+| UK       | 41          | 8          | 7             | 6          | 14         |
+| Ethiopia | 37          | 7          | 7             | 7          | 8          |
+| Bahamas  | 30          | 6          | 6             | 2          | 11         |
+| Cuba     | 22          | 4          | 5             | 1          | 9          |
+| Nigeria  | 21          | 7          | 7             | 6          | 8          |
+| France   | 19          | 5          | 5             | 2          | 6          |
+
+
+#### Visualization Top 10 medals overall by country
+| Region      | Total Medals | Avg Medals | Median Medals | Min Medals | Max Medals |
+|------------|-------------|------------|---------------|------------|------------|
+| USA        | 1334        | 267        | 263           | 242        | 317        |
+| Russia     | 773         | 155        | 142           | 115        | 189        |
+| Australia  | 685         | 137        | 149           | 82         | 183        |
+| Germany    | 619         | 124        | 118           | 94         | 159        |
+| China      | 598         | 120        | 113           | 79         | 184        |
+| UK         | 463         | 93         | 81            | 54         | 145        |
+| France     | 374         | 75         | 77            | 53         | 96         |
+| Italy      | 351         | 70         | 68            | 42         | 104        |
+| Japan      | 336         | 67         | 64            | 44         | 93         |
+| Netherlands| 333         | 67         | 69            | 47         | 79         |
+
+
+#### Visualization total medals **athletics** by year and country
+![medals_athletics_year_region](docs/medals_athletics_year_region.png)
+
+#### Visualization total medals **overall** by year and country
+![medals_overall_year_region](docs/medals_overall_year_region.png)
+
+**Summary:**  
+The goal of this **descriptive statistic** is to analyze the **correlation** between a country's **performance** in **athletics** and its overall **Olympic** success from **2000 to 2016**.  
+
+**Key Points:**  
+
+- The **USA** consistently dominates in both **athletics** and total **Olympic medals**.  
+- Five nations—**USA, Russia, UK, France, and Germany**—rank in the **Top 10** for both **athletics** and overall **Olympic** medal counts.  
+- In **2016**, **Russia** was banned from competing in **athletics** due to allegations of a **state-sponsored doping program**.  
+- Between **2000 and 2016**, **USA, UK, Jamaica, and Kenya** showed an upward trend in **athletics medals**, while **Russia and Nigeria** experienced the most significant decline.  
+- In terms of **overall Olympic performance**, **UK** demonstrated the most notable **growth** over this period.  
+
+
+### 3. Winners by age range in athletics vs overall sports
+####  Winners by age range in athletics
+```sql 
+CREATE VIEW medals_athletics_by_age_range AS
+SELECT
+	a."year",
+	CASE 
+		WHEN age <= 20 THEN '<= 20'
+		WHEN age BETWEEN 21 AND 25 THEN '21 - 25'
+		WHEN age BETWEEN 26 AND 30 THEN '26 - 30'
+		WHEN age BETWEEN 31 AND 35 THEN '31 - 35'
+		WHEN age BETWEEN 36 AND 40 THEN '36 - 40'
+		ELSE '> 40'
+	END AS age_range,
+	COUNT(DISTINCT id) AS num_participants
+FROM athletes a
+LEFT JOIN noc_regions n
+	ON a.noc = n.noc
+WHERE 
+	a.medal IS NOT NULL AND
+	(a."year" BETWEEN 2000 AND 2016) AND
+	a.sport = 'Athletics' AND
+	a.season = 'Summer'
+GROUP BY
+	a."year",
+	age_range
+ORDER BY
+	a."year",
+	num_participants DESC
+;
+SELECT 
+	age_range,
+	SUM(num_participants) AS total_participants,
+	ROUND(AVG(num_participants)) AS avg_participants,
+	PERCENTILE_DISC(0.5) WITHIN GROUP(ORDER BY num_participants) AS median_participants,
+	MIN(num_participants ) AS min_participants,
+	MAX(num_participants ) AS max_participants
+FROM medals_athletics_by_age_range
+GROUP BY
+	age_range
+ORDER BY 
+	age_range;
+
+```
+####  Winners by age range in overall sports
+```sql
+CREATE VIEW medals_overall_by_age_range AS
+SELECT
+	a."year",
+	CASE 
+		WHEN age <= 20 THEN '<= 20'
+		WHEN age BETWEEN 21 AND 25 THEN '21 - 25'
+		WHEN age BETWEEN 26 AND 30 THEN '26 - 30'
+		WHEN age BETWEEN 31 AND 35 THEN '31 - 35'
+		WHEN age BETWEEN 36 AND 40 THEN '36 - 40'
+		ELSE '> 40'
+	END AS age_range,
+	COUNT(DISTINCT id) AS num_participants
+FROM athletes a
+LEFT JOIN noc_regions n
+	ON a.noc = n.noc
+WHERE 
+	a.medal IS NOT NULL AND
+	(a."year" BETWEEN 2000 AND 2016) AND
+	a.season = 'Summer'
+GROUP BY
+	a."year",
+	age_range
+ORDER BY
+	a."year",
+	num_participants DESC
+;
+SELECT 
+	age_range,
+	SUM(num_participants) AS total_participants,
+	ROUND(AVG(num_participants)) AS avg_participants,
+	PERCENTILE_DISC(0.5) WITHIN GROUP(ORDER BY num_participants) AS median_participants,
+	MIN(num_participants ) AS min_participants,
+	MAX(num_participants ) AS max_participants
+FROM medals_overall_by_age_range
+GROUP BY
+	age_range
+ORDER BY 
+	age_range;
+```
+####  Visualization Winners by age range in athletics
+| Age Range  | Total Participants | Avg Participants | Median Participants | Min Participants | Max Participants |
+|------------|-------------------|------------------|----------------------|------------------|------------------|
+| <= 20      | 59                | 12               | 12                   | 8                | 15               |
+| 21 - 25    | 352               | 70               | 69                   | 63               | 84               |
+| 26 - 30    | 323               | 65               | 62                   | 58               | 78               |
+| 31 - 35    | 105               | 21               | 24                   | 10               | 29               |
+| 36 - 40    | 19                | 4                | 4                    | 1                | 7                |
+
+####  Visualization Winners by age range in overall sports
+| Age Range  | Total Participants | Avg Participants | Median Participants | Min Participants | Max Participants |
+|------------|-------------------|------------------|----------------------|------------------|------------------|
+| <= 20      | 886               | 177              | 176                  | 165              | 195              |
+| 21 - 25    | 3,499             | 700              | 687                  | 683              | 743              |
+| 26 - 30    | 3,200             | 640              | 633                  | 615              | 660              |
+| 31 - 35    | 1,172             | 234              | 230                  | 211              | 259              |
+| 36 - 40    | 285               | 57               | 55                   | 50               | 66               |
+| > 40       | 133               | 27               | 27                   | 23               | 29               |
+
+#### Visualization Winner by age range and year in **athletics** 
+![pic](docs/participants_athletics_by_age_range.png)
+
+#### Visualization Winner by age range and year in **overall sports** 
+![pic](docs/participants_overall_by_age_range.png)
+
+#### Winners Age distribution in **athletics**
+```sql
+CREATE VIEW medals_athletics_by_age AS
+SELECT
+	a.age,
+	COUNT(DISTINCT id) AS num_participants
+FROM athletes a
+LEFT JOIN noc_regions n
+	ON a.noc = n.noc
+WHERE 
+	a.medal IS NOT NULL AND
+	(a."year" BETWEEN 2000 AND 2016) AND
+	a.sport = 'Athletics' AND
+	a.season = 'Summer'	
+GROUP BY 
+	a.age;
+```
+#### Winners Age distribution in **overall sports**
+```sql
+CREATE VIEW medals_overall_by_age AS
+SELECT
+	a.age,
+	COUNT(DISTINCT id) AS num_participants
+FROM athletes a
+LEFT JOIN noc_regions n
+	ON a.noc = n.noc
+WHERE 
+	a.medal IS NOT NULL AND
+	(a."year" BETWEEN 2000 AND 2016) AND
+	a.season = 'Summer'	
+GROUP BY 
+	a.age;
+	
+```
+#### Visualization Winners Age distribution in **athletics**
+![pic](docs/participants_athletics_by_age.png)
+#### Visualization Winners Age distribution in **overall sports**
+![pic](docs/participants_overall_by_age.png)
+**Summary:**  
+This **descriptive statistic** aims to identify the **age ranges** that dominate **Olympic winners** in both **athletics** and overall **sporting events** from **2000 to 2016**.  
+
+**Key Points:**  
+
+- The **21 - 25** age group has won the most **Olympic medals**, with a slight lead over the **26 - 30** age group. Together, these two age ranges account for over **70%** of medal wins in both **athletics** and overall **sporting events**.  
+- **Age 26** stands out as the most common age among **Olympic medal winners** in both **athletics** and overall **sporting events**.  
+
+### 4. Winners by BMI range in athletics vs overall
+####  Winners by BMI range in **athletics**
+```sql
+CREATE VIEW medals_athletics_by_bmi_range AS
+SELECT
+	a."year",
+	CASE
+		WHEN ROUND(weight/(height/100)^2,2) < 18.5 THEN 'Underweight'
+		WHEN ROUND(weight/(height/100)^2,2) BETWEEN 18.5 AND 24.99 THEN 'Normal Weight'
+		WHEN ROUND(weight/(height/100)^2,2) BETWEEN 25 AND 29.99 THEN 'Overweight'
+		ELSE 'Obesity'
+	END AS bmi_range,
+	COUNT(DISTINCT id) AS num_participants
+FROM athletes a
+LEFT JOIN noc_regions n
+	ON a.noc = n.noc
+WHERE 
+	a.medal IS NOT NULL AND
+	(a."year" BETWEEN 2000 AND 2016) AND
+	a.sport = 'Athletics' AND
+	a.season = 'Summer'
+GROUP BY
+	a."year",
+	--bmi,
+	bmi_range;
+
+SELECT
+	bmi_range,
+	SUM(num_participants) AS total_participants,
+	ROUND(AVG(num_participants)) AS avg_participants,
+	PERCENTILE_DISC(0.5) WITHIN GROUP(ORDER BY num_participants) AS median_participants,
+	MIN(num_participants ) AS min_participants,
+	MAX(num_participants ) AS max_participants
+FROM medals_athletics_by_bmi_range
+GROUP BY 
+	bmi_range
+```
+| BMI Range      | Total Participants | Avg Participants | Median Participants | Min Participants | Max Participants |
+|---------------|-------------------|------------------|----------------------|------------------|------------------|
+| Normal Weight | 621               | 124              | 122                  | 120              | 131              |
+| Obesity       | 58                | 12               | 10                   | 8                | 16               |
+| Overweight    | 91                | 18               | 18                   | 15               | 22               |
+| Underweight   | 88                | 18               | 18                   | 14               | 21               |
+
+####  Winners by BMI range in **overall sports**
+```sql
+CREATE VIEW medals_overall_by_bmi_range AS
+SELECT
+	a."year",
+	--ROUND(weight/(height/100)^2,2) AS bmi,
+	CASE
+		WHEN ROUND(weight/(height/100)^2,2) < 18.5 THEN 'Underweight'
+		WHEN ROUND(weight/(height/100)^2,2) BETWEEN 18.5 AND 24.99 THEN 'Normal Weight'
+		WHEN ROUND(weight/(height/100)^2,2) BETWEEN 25 AND 29.99 THEN 'Overweight'
+		ELSE 'Obesity'
+	END AS bmi_range,
+	COUNT(DISTINCT id) AS num_participants
+FROM athletes a
+LEFT JOIN noc_regions n
+	ON a.noc = n.noc
+WHERE 
+	a.medal IS NOT NULL AND
+	(a."year" BETWEEN 2000 AND 2016) AND
+	a.season = 'Summer'
+GROUP BY
+	a."year",
+	--bmi,
+	bmi_range;
+
+SELECT
+	bmi_range,
+	SUM(num_participants) AS total_participants,
+	ROUND(AVG(num_participants)) AS avg_participants,
+	PERCENTILE_DISC(0.5) WITHIN GROUP(ORDER BY num_participants) AS median_participants,
+	MIN(num_participants ) AS min_participants,
+	MAX(num_participants ) AS max_participants
+FROM medals_overall_by_bmi_range
+GROUP BY 
+	bmi_range
+```
+| BMI Range      | Total Participants | Avg Participants | Median Participants | Min Participants | Max Participants |
+|---------------|-------------------|------------------|----------------------|------------------|------------------|
+| Normal Weight | 6,797             | 1,359            | 1,369                | 1,315            | 1,385            |
+| Obesity       | 317               | 63               | 65                   | 49               | 74               |
+| Overweight    | 1,696             | 339              | 331                  | 315              | 375              |
+| Underweight   | 365               | 73               | 74                   | 66               | 79               |
+
+####  Visualization Winners by BMI range and year in **athletics**
+![pic](docs/participants_athletics_by_bmi_range.png)
+####  Visualization Winners by BMI range and year in **overall sports**
+![pic](docs/participants_overall_by_bmi_range.png)
+**Summary:**  
+This **descriptive statistic** examines which **BMI ranges** dominate among **Olympic winners** in both **athletics** and overall **sporting events** from **2000 to 2016**.  
+
+**Key Points:**  
+
+- **Normal Weight** athletes dominate **Olympic medals** in both **athletics** and overall **sporting events**, with over **70% probability** of winning.  
+- Interestingly, in overall **sporting events**, **Overweight** athletes secure **17% to 20% chances of winning medals**, while in **athletics**, the proportion is more evenly distributed between **Overweight** and **Underweight** athletes.  
+
+## 6. Hypotheses Analysis  
+
+### *Initial Hypothesis*  
+- Sports that offer **the most competitions** positively impact a country's overall **Olympic medal achievements**.  
+
+### *Result*  
+- Analysis suggests that **athletics** does influence medal success, as **5 out of 10 countries** in the **top athletics medal rankings** also appear in the **top 10 overall sporting events medal rankings**. However, this impact is not overwhelmingly strong. Only **the United States and Russia (excluding 2016 data)** show a clear correlation between dominance in **athletics** and overall **sporting events**. While **UK, France, and Germany** rank in the **top 10 for both**, their **athletics** performance is surpassed by **Jamaica and Kenya**, which are not in the **top 10 for overall sporting events**.  
+
+### *Initial Hypothesis*  
+- Athletes between **the ages of 26 and 30** are more likely to win medals than those in other age groups.  
+
+### *Result*  
+- The **21 - 25** age group wins the most **Olympic medals** in both **athletics** and overall **sporting events**, slightly ahead of the **26 - 30** age group.  
+
+### *Initial Hypothesis*  
+- Athletes with a **BMI in the normal weight range (18.5 - 24.9)** are more likely to win medals compared to other BMI categories.  
+
+### *Result*  
+- **Normal Weight** athletes overwhelmingly dominate medal wins, accounting for **over 70%** of total victories across all categories.  
