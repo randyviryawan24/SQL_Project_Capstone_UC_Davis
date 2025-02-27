@@ -847,3 +847,10 @@ This **descriptive statistic** examines which **BMI ranges** dominate among **Ol
 
 ### *Result*  
 - **Normal Weight** athletes overwhelmingly dominate medal wins, accounting for **over 70%** of total victories across all categories.  
+
+### *Additional Questions to Answer*
+-  What is the distribution of medal dominance across different sporting events within the top 10 Olympic medalists?
+- How does BMI distribution vary across different sporting events? Are certain sports more dominated by Overweight or Underweight athletes?
+- Do athletes in the 21 - 25 age range dominate specific sports, or is their success evenly distributed across all sporting events?
+- How do the top 10 medal-winning countries compare in terms of age range and BMI trends?
+- Are there outliers—athletes who don’t fit the typical age or BMI range—who have still achieved significant success?
