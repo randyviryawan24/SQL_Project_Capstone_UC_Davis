@@ -858,8 +858,7 @@ This **descriptive statistic** examines which **BMI ranges** dominate among **Ol
 ## 7. Further Analysis
 
 ### 1.Top 10 medals by country in athletics vs overall
-#### Method
-- Pearson correlation
+#### Pearson correlation
 ```sql
 CREATE VIEW top_10_medals_athletics_overall AS
 SELECT
@@ -907,7 +906,7 @@ FROM top_10_medals_athletics_overall
 - A correlation of **-0.4615** is **moderate**, suggesting that while there is some relationship, it is not a strong or perfect one.
 
 
-- Scatter Plot
+#### Scatter Plot
 ![pic](docs/regression_top_10_athletic_medals_overall_rank.png)
 
 **Summary**
@@ -917,7 +916,7 @@ FROM top_10_medals_athletics_overall
 ### 2. Winners by age range in athletics vs overall sports
 #### Pearson Correlation
 
-**A.Age range in athletics and overall sporting events** 
+**A. Age range in athletics and overall sporting events** 
 
 ```sql
 CREATE VIEW age_medal_corr_athletics AS
@@ -1106,7 +1105,7 @@ ORDER BY correlation_coefficient
 
 #### Pearson Correlation
 
-**A.Age range in athletics and overall sporting events** 
+**A.BMI range in athletics and overall sporting events** 
 ```sql
 CREATE VIEW bmi_medal_corr_athletics AS
 SELECT 
@@ -1280,7 +1279,7 @@ ORDER BY correlation_coefficient
 #### Scatter Plot and Regression Model
 ![pic](docs/regression_bmi_group_athletic_medals.png)
 
-*Summary*
+**Summary:**
 - The degree 3 curve is picked to describe the trend between **bmi group and number of medals** compared to degree 2 as the R values is stronger and perfect.
 - The polynomial curve likely shows an increase in medal counts from **Underweight to Normal Weight**, followed by a decline after the latter mention.
 - While the model fits the data well, **it is not ideal for future predictions beyond this dataset**, as polynomial regressions can overfit small datasets.
