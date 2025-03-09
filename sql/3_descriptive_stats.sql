@@ -1,8 +1,20 @@
 --descriptive stats about participants
 SELECT
-	COUNT (*) AS total_data,
+	"year",
+	COUNT (*) AS total_medals,
 	COUNT (DISTINCT id) AS total_participants
-FROM athletes 
+FROM athletes
+WHERE 
+	medal IS NOT NULL AND
+	("year" BETWEEN 2000 AND 2016) AND
+	sport = 'Athletics' AND
+	season = 'Summer'
+GROUP BY 
+	"year"
+ORDER BY
+	"year"
+;
+
 
 --DISTINCT TEAM. Probably add to initial exploration later on (?)
 SELECT DISTINCT team
@@ -68,7 +80,7 @@ SELECT
 	m.region,
 	SUM(m.num_medals) AS total_medals,
 	ROUND(AVG(m.num_medals)) AS avg_medals,
-	PERCENTILE_DISC(0.5) WITHIN GROUP(ORDER BY num_medals) AS median,
+	PERCENTILE_DISC(0.5) WITHIN GROUP(ORDER BY num_medals) AS median_medals,
 	MIN(m.num_medals ) AS min_medals,
 	MAX(m.num_medals ) AS max_medals
 FROM medals_athletics_by_country AS m
@@ -97,6 +109,8 @@ ORDER BY
 	a."year",
 	num_medals DESC
 ;
+
+
 -- Descriptive stats medals overall by country
 CREATE VIEW medals_overall_by_country AS
 SELECT
@@ -117,21 +131,33 @@ ORDER BY
 	a."year",
 	num_medals DESC
 ;
+
+--Check Russia Absence
+
 SELECT
-	m.region,
-	SUM(m.num_medals) AS total_medals,
-	ROUND(AVG(m.num_medals)) AS avg_medals,
-	PERCENTILE_DISC(0.5) WITHIN GROUP(ORDER BY num_medals) AS median,
-	MIN(m.num_medals ) AS min_medals,
-	MAX(m.num_medals ) AS max_medals
-FROM medals_overall_by_country AS m
-GROUP BY m.region
-ORDER BY total_medals DESC
-LIMIT 10
+	a."year",
+	a.sport,
+	COUNT(*) AS num_medals
+FROM athletes a
+LEFT JOIN noc_regions n
+	ON a.noc = n.noc
+WHERE 
+	a.medal IS NOT NULL AND
+	(a."year" BETWEEN 2000 AND 2016) AND
+	a.season = 'Summer'AND
+	region = 'Russia'
+GROUP BY
+	a."year",
+	n.region,
+	a.sport
+ORDER BY
+	a."year",
+	num_medals DESC
 ;
 
 
 -- Descriptive stats medals in athletics by age range
+
 CREATE VIEW medals_athletics_by_age_range AS
 SELECT
 	a."year",
@@ -143,7 +169,7 @@ SELECT
 		WHEN age BETWEEN 36 AND 40 THEN '36 - 40'
 		ELSE '> 40'
 	END AS age_range,
-	COUNT(*) AS num_medals
+	COUNT(DISTINCT id) AS num_participants
 FROM athletes a
 LEFT JOIN noc_regions n
 	ON a.noc = n.noc
@@ -157,16 +183,58 @@ GROUP BY
 	age_range
 ORDER BY
 	a."year",
-	num_medals DESC
+	num_participants DESC
 ;
 SELECT 
 	age_range,
-	SUM(num_medals) AS total_medals,
-	ROUND(AVG(num_medals)) AS avg_medals,
-	PERCENTILE_DISC(0.5) WITHIN GROUP(ORDER BY num_medals) AS median,
-	MIN(num_medals ) AS min_medals,
-	MAX(num_medals ) AS max_medals
+	SUM(num_participants) AS total_participants,
+	ROUND(AVG(num_participants)) AS avg_participants,
+	PERCENTILE_DISC(0.5) WITHIN GROUP(ORDER BY num_participants) AS median_participants,
+	MIN(num_participants ) AS min_participants,
+	MAX(num_participants ) AS max_participants
 FROM medals_athletics_by_age_range
+GROUP BY
+	age_range
+ORDER BY 
+	age_range;
+
+
+
+-- Descriptive stats medals overall by age range
+CREATE VIEW medals_overall_by_age_range AS
+SELECT
+	a."year",
+	CASE 
+		WHEN age <= 20 THEN '<= 20'
+		WHEN age BETWEEN 21 AND 25 THEN '21 - 25'
+		WHEN age BETWEEN 26 AND 30 THEN '26 - 30'
+		WHEN age BETWEEN 31 AND 35 THEN '31 - 35'
+		WHEN age BETWEEN 36 AND 40 THEN '36 - 40'
+		ELSE '> 40'
+	END AS age_range,
+	COUNT(DISTINCT id) AS num_participants
+FROM athletes a
+LEFT JOIN noc_regions n
+	ON a.noc = n.noc
+WHERE 
+	a.medal IS NOT NULL AND
+	(a."year" BETWEEN 2000 AND 2016) AND
+	a.season = 'Summer'
+GROUP BY
+	a."year",
+	age_range
+ORDER BY
+	a."year",
+	num_participants DESC
+;
+SELECT 
+	age_range,
+	SUM(num_participants) AS total_participants,
+	ROUND(AVG(num_participants)) AS avg_participants,
+	PERCENTILE_DISC(0.5) WITHIN GROUP(ORDER BY num_participants) AS median_participants,
+	MIN(num_participants ) AS min_participants,
+	MAX(num_participants ) AS max_participants
+FROM medals_overall_by_age_range
 GROUP BY
 	age_range
 ORDER BY 
@@ -176,14 +244,13 @@ ORDER BY
 CREATE VIEW medals_athletics_by_bmi_range AS
 SELECT
 	a."year",
-	--ROUND(weight/(height/100)^2,2) AS bmi,
 	CASE
 		WHEN ROUND(weight/(height/100)^2,2) < 18.5 THEN 'Underweight'
 		WHEN ROUND(weight/(height/100)^2,2) BETWEEN 18.5 AND 24.99 THEN 'Normal Weight'
 		WHEN ROUND(weight/(height/100)^2,2) BETWEEN 25 AND 29.99 THEN 'Overweight'
 		ELSE 'Obesity'
 	END AS bmi_range,
-	COUNT(*) AS num_medals
+	COUNT(DISTINCT id) AS num_participants
 FROM athletes a
 LEFT JOIN noc_regions n
 	ON a.noc = n.noc
@@ -199,12 +266,77 @@ GROUP BY
 
 SELECT
 	bmi_range,
-	SUM(num_medals) AS total_medals,
-	ROUND(AVG(num_medals)) AS avg_medals,
-	PERCENTILE_DISC(0.5) WITHIN GROUP(ORDER BY num_medals) AS median,
-	MIN(num_medals ) AS min_medals,
-	MAX(num_medals ) AS max_medals
+	SUM(num_participants) AS total_participants,
+	ROUND(AVG(num_participants)) AS avg_participants,
+	PERCENTILE_DISC(0.5) WITHIN GROUP(ORDER BY num_participants) AS median_participants,
+	MIN(num_participants ) AS min_participants,
+	MAX(num_participants ) AS max_participants
 FROM medals_athletics_by_bmi_range
 GROUP BY 
 	bmi_range
 
+-- Descriptive stats medals in overall by bmi_range
+CREATE VIEW medals_overall_by_bmi_range AS
+SELECT
+	a."year",
+	--ROUND(weight/(height/100)^2,2) AS bmi,
+	CASE
+		WHEN ROUND(weight/(height/100)^2,2) < 18.5 THEN 'Underweight'
+		WHEN ROUND(weight/(height/100)^2,2) BETWEEN 18.5 AND 24.99 THEN 'Normal Weight'
+		WHEN ROUND(weight/(height/100)^2,2) BETWEEN 25 AND 29.99 THEN 'Overweight'
+		ELSE 'Obesity'
+	END AS bmi_range,
+	COUNT(DISTINCT id) AS num_participants
+FROM athletes a
+LEFT JOIN noc_regions n
+	ON a.noc = n.noc
+WHERE 
+	a.medal IS NOT NULL AND
+	(a."year" BETWEEN 2000 AND 2016) AND
+	a.season = 'Summer'
+GROUP BY
+	a."year",
+	--bmi,
+	bmi_range;
+
+SELECT
+	bmi_range,
+	SUM(num_participants) AS total_participants,
+	ROUND(AVG(num_participants)) AS avg_participants,
+	PERCENTILE_DISC(0.5) WITHIN GROUP(ORDER BY num_participants) AS median_participants,
+	MIN(num_participants ) AS min_participants,
+	MAX(num_participants ) AS max_participants
+FROM medals_overall_by_bmi_range
+GROUP BY 
+	bmi_range
+	
+	
+CREATE VIEW medals_athletics_by_age AS
+SELECT
+	a.age,
+	COUNT(DISTINCT id) AS num_participants
+FROM athletes a
+LEFT JOIN noc_regions n
+	ON a.noc = n.noc
+WHERE 
+	a.medal IS NOT NULL AND
+	(a."year" BETWEEN 2000 AND 2016) AND
+	a.sport = 'Athletics' AND
+	a.season = 'Summer'	
+GROUP BY 
+	a.age;
+
+CREATE VIEW medals_overall_by_age AS
+SELECT
+	a.age,
+	COUNT(DISTINCT id) AS num_participants
+FROM athletes a
+LEFT JOIN noc_regions n
+	ON a.noc = n.noc
+WHERE 
+	a.medal IS NOT NULL AND
+	(a."year" BETWEEN 2000 AND 2016) AND
+	a.season = 'Summer'	
+GROUP BY 
+	a.age;
+	
